@@ -1,4 +1,4 @@
-module github.com/clong1995/go-auth
+module github.com/clong1995/go-db
 
 go 1.23.2
 
