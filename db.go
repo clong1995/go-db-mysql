@@ -2,9 +2,11 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/clong1995/go-config"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"reflect"
 )
 
 var datasource *sql.DB
@@ -54,15 +56,6 @@ func Tx(handle func(tx *sql.Tx) (err error)) (err error) {
 	return
 }
 
-// Query 查询
-func Query(query string, args ...any) (rows *sql.Rows, err error) {
-	if rows, err = datasource.Query(query, args...); err != nil {
-		log.Println(err)
-		return
-	}
-	return
-}
-
 // QueryRow 查询一条
 func QueryRow(query string, args ...any) (row *sql.Row) {
 	row = datasource.QueryRow(query, args...)
@@ -75,5 +68,88 @@ func Exec(query string, args ...any) (result sql.Result, err error) {
 		log.Println(err)
 		return
 	}
+	return
+}
+
+// TxExec 事物内执行
+func TxExec(tx *sql.Tx, query string, args ...any) (result sql.Result, err error) {
+	if result, err = tx.Exec(query, args...); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
+// QueryScan 查询并扫描
+func QueryScan[T any](query string, args ...any) (res []T, err error) {
+	rows, err := datasource.Query(query, args...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	if res, err = scan[T](rows); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
+// TxQueryScan 事物内查询并扫描
+func TxQueryScan[T any](tx *sql.Tx, query string, args ...any) (res []T, err error) {
+	rows, err := tx.Query(query, args...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	if res, err = scan[T](rows); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
+func scan[T any](rows *sql.Rows) (res []T, err error) {
+	columns, err := rows.Columns()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	var obj T
+	objType := reflect.TypeOf(obj)
+	if objType.NumField() != len(columns) {
+		err = fmt.Errorf(`columns len = %d, objType len = %d`, len(columns), objType.NumField())
+		log.Println(err)
+		return
+	}
+
+	objValue := reflect.ValueOf(&obj).Elem()
+
+	fieldPointers := make([]any, len(columns))
+
+	for i := range fieldPointers {
+		fieldPointers[i] = objValue.Field(i).Addr().Interface()
+	}
+	for rows.Next() {
+		if err = rows.Scan(fieldPointers...); err != nil {
+			log.Println(err)
+			return
+		}
+		res = append(res, obj)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
 	return
 }
