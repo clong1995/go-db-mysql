@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/clong1995/go-config"
 	_ "github.com/go-sql-driver/mysql"
@@ -125,6 +126,12 @@ func scan[T any](rows *sql.Rows) (res []T, err error) {
 
 	var obj T
 	objType := reflect.TypeOf(obj)
+	if objType.Kind() != reflect.Struct {
+		err = errors.New("type not Struct")
+		log.Println(err)
+		return
+	}
+
 	if objType.NumField() != len(columns) {
 		err = fmt.Errorf(`columns len = %d, objType len = %d`, len(columns), objType.NumField())
 		log.Println(err)
