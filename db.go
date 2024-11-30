@@ -81,6 +81,15 @@ func TxExec(tx *sql.Tx, query string, args ...any) (result sql.Result, err error
 	return
 }
 
+// Query 查询
+func Query(query string, args ...any) (rows *sql.Rows, err error) {
+	if rows, err = datasource.Query(query, args...); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
 // QueryScan 查询并扫描
 func QueryScan[T any](query string, args ...any) (res []T, err error) {
 	rows, err := datasource.Query(query, args...)
@@ -111,6 +120,16 @@ func TxQueryScan[T any](tx *sql.Tx, query string, args ...any) (res []T, err err
 	}()
 
 	if res, err = scan[T](rows); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
+// TxQuery 事物内查询并扫描
+func TxQuery(tx *sql.Tx, query string, args ...any) (rows *sql.Rows, err error) {
+	rows, err = tx.Query(query, args...)
+	if err != nil {
 		log.Println(err)
 		return
 	}
