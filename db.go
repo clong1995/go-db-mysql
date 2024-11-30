@@ -157,12 +157,18 @@ func scan[T any](rows *sql.Rows) (res []T, err error) {
 		return
 	}
 
-	objValue := reflect.ValueOf(&obj).Elem()
+	objValueElem := reflect.ValueOf(&obj).Elem()
+	//objTypeElem := objType.Elem()
 
 	fieldPointers := make([]any, len(columns))
 
 	for i := range fieldPointers {
-		fieldPointers[i] = objValue.Field(i).Addr().Interface()
+		field := objValueElem.Field(i)
+		if field.Kind() == reflect.Struct || field.Kind() == reflect.Slice {
+			//TODO 是结构体或者切片
+		} else {
+			fieldPointers[i] = field.Addr().Interface()
+		}
 	}
 	for rows.Next() {
 		if err = rows.Scan(fieldPointers...); err != nil {
