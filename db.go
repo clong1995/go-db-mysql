@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/clong1995/go-config"
@@ -158,22 +159,34 @@ func scan[T any](rows *sql.Rows) (res []T, err error) {
 	}
 
 	objValueElem := reflect.ValueOf(&obj).Elem()
-	//objTypeElem := objType.Elem()
 
 	fieldPointers := make([]any, len(columns))
 
+	m := make(map[int]*[]byte)
+	tempPointers := make([]any, len(columns))
+
+	var field reflect.Value
 	for i := range fieldPointers {
-		field := objValueElem.Field(i)
+		field = objValueElem.Field(i)
+		fieldPointers[i] = field.Addr().Interface()
 		if field.Kind() == reflect.Struct || field.Kind() == reflect.Slice {
-			//TODO 是结构体或者切片
+			var jsonData []byte
+			m[i] = &jsonData
+			tempPointers[i] = m[i]
 		} else {
-			fieldPointers[i] = field.Addr().Interface()
+			tempPointers[i] = fieldPointers[i]
 		}
 	}
 	for rows.Next() {
-		if err = rows.Scan(fieldPointers...); err != nil {
+		if err = rows.Scan(tempPointers...); err != nil {
 			log.Println(err)
 			return
+		}
+		for k, v := range m {
+			if err = json.Unmarshal(*v, fieldPointers[k]); err != nil {
+				log.Println(err)
+				return
+			}
 		}
 		res = append(res, obj)
 	}
