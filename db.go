@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/clong1995/go-config"
 	_ "github.com/go-sql-driver/mysql"
@@ -146,49 +145,56 @@ func scan[T any](rows *sql.Rows) (res []T, err error) {
 
 	var obj T
 	objType := reflect.TypeOf(obj)
-	if objType.Kind() != reflect.Struct {
-		err = errors.New("type not Struct")
-		log.Println(err)
-		return
-	}
 
-	if objType.NumField() != len(columns) {
-		err = fmt.Errorf(`columns len = %d, objType len = %d`, len(columns), objType.NumField())
-		log.Println(err)
-		return
-	}
+	if objType.Kind() == reflect.Struct {
+		var fieldPointers []any
+		var scanPointers []any
+		var jsonPointers map[int]*[]byte
 
-	objValueElem := reflect.ValueOf(&obj).Elem()
-
-	fieldPointers := make([]any, len(columns))
-
-	m := make(map[int]*[]byte)
-	tempPointers := make([]any, len(columns))
-
-	var field reflect.Value
-	for i := range fieldPointers {
-		field = objValueElem.Field(i)
-		fieldPointers[i] = field.Addr().Interface()
-		if field.Kind() == reflect.Struct || field.Kind() == reflect.Slice {
-			var jsonData []byte
-			m[i] = &jsonData
-			tempPointers[i] = m[i]
-		} else {
-			tempPointers[i] = fieldPointers[i]
-		}
-	}
-	for rows.Next() {
-		if err = rows.Scan(tempPointers...); err != nil {
+		if objType.NumField() != len(columns) {
+			err = fmt.Errorf(`columns len = %d, objType len = %d`, len(columns), objType.NumField())
 			log.Println(err)
 			return
 		}
-		for k, v := range m {
-			if err = json.Unmarshal(*v, fieldPointers[k]); err != nil {
+
+		fieldPointers = make([]any, len(columns))
+		jsonPointers = make(map[int]*[]byte)
+		scanPointers = make([]any, len(columns))
+
+		var field reflect.Value
+		objValueElem := reflect.ValueOf(&obj).Elem()
+		for i := range fieldPointers {
+			field = objValueElem.Field(i)
+			fieldPointers[i] = field.Addr().Interface()
+			if field.Kind() == reflect.Struct || field.Kind() == reflect.Slice {
+				var jsonData []byte
+				jsonPointers[i] = &jsonData
+				scanPointers[i] = jsonPointers[i]
+			} else {
+				scanPointers[i] = fieldPointers[i]
+			}
+		}
+		for rows.Next() {
+			if err = rows.Scan(scanPointers...); err != nil {
 				log.Println(err)
 				return
 			}
+			for k, v := range jsonPointers {
+				if err = json.Unmarshal(*v, fieldPointers[k]); err != nil {
+					log.Println(err)
+					return
+				}
+			}
+			res = append(res, obj)
 		}
-		res = append(res, obj)
+	} else {
+		for rows.Next() {
+			if err = rows.Scan(&obj); err != nil {
+				log.Println(err)
+				return
+			}
+			res = append(res, obj)
+		}
 	}
 
 	if err = rows.Err(); err != nil {
