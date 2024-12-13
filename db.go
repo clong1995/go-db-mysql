@@ -32,6 +32,31 @@ func init() {
 	log.Printf("[MySQL] conn %s\n", ds)
 }
 
+// PrepareStmtTx 附带事物的预编译SQL批量执行
+func PrepareStmtTx(query string, handle func(stmtTx *sql.Stmt) (err error)) (err error) {
+	if err = Tx(func(tx *sql.Tx) (err error) {
+		stmt, err := tx.Prepare(query)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		defer func() {
+			_ = stmt.Close()
+		}()
+
+		if err = handle(stmt); err != nil {
+			log.Println(err)
+			return
+		}
+
+		return
+	}); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
 // Tx 事物
 func Tx(handle func(tx *sql.Tx) (err error)) (err error) {
 	//开启事物
@@ -129,7 +154,7 @@ func TxQueryScan[T any](tx *sql.Tx, query string, args ...any) (res []T, err err
 	return
 }
 
-// TxQuery 事物内查询并扫描
+// TxQuery 事物内查询
 func TxQuery(tx *sql.Tx, query string, args ...any) (rows *sql.Rows, err error) {
 	rows, err = tx.Query(query, args...)
 	if err != nil {
