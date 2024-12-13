@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"reflect"
+	"time"
 )
 
 var datasource *sql.DB
@@ -21,8 +22,9 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	datasource.SetMaxOpenConns(100)
+	datasource.SetMaxOpenConns(50)
 	datasource.SetMaxIdleConns(10)
+	datasource.SetConnMaxLifetime(time.Hour)
 	if err = datasource.Ping(); err != nil {
 		log.Println(err)
 		return
