@@ -14,6 +14,7 @@ var datasource *sql.DB
 
 func init() {
 	ds := config.Value("DATASOURCE")
+
 	var err error
 	datasource, err = sql.Open("mysql", ds)
 	if err != nil {

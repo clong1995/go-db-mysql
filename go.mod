@@ -1,4 +1,4 @@
-module github.com/clong1995/go-db
+module github.com/clong1995/go-db-mysql
 
 go 1.23.2
 
