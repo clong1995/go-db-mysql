@@ -46,4 +46,11 @@ func Close() {
 		return
 	}
 	fmt.Println("[PostgreSQL] db exited!")
+	for _, v := range datasourceX {
+		if err = v.Close(); err != nil {
+			log.Println(err)
+			return
+		}
+		fmt.Println("[PostgreSQL] db exited!")
+	}
 }

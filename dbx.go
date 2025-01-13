@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/clong1995/go-config"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
@@ -55,15 +54,4 @@ func init() {
 		log.Printf("[MySQL] conn %s\n", v)
 	}
 
-}
-
-func CloseX() {
-	for _, v := range datasourceX {
-		err := v.Close()
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		fmt.Println("[PostgreSQL] db exited!")
-	}
 }
