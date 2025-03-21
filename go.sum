@@ -4,5 +4,9 @@ github.com/clong1995/go-config v0.0.0-20241018013119-7c9eb1a671ac h1:sTLgn8sqKxv
 github.com/clong1995/go-config v0.0.0-20241018013119-7c9eb1a671ac/go.mod h1:U+8aUkJjLYIimbrAobYsvM/GBDOgPjFZQaAqE2mL0GM=
 github.com/clong1995/go-config v0.0.0-20250121071657-ae34323b5985 h1:etVlsdEGfm4+SY0j/mpR3WAXPBJhLmQFnHPcRJL1MMk=
 github.com/clong1995/go-config v0.0.0-20250121071657-ae34323b5985/go.mod h1:G4Z1Nh65yNZ2uHv0h9X4KHbISb8XHrSj6k8pxrrtZTw=
+github.com/clong1995/go-config v0.0.0-20250226023157-45462db4209f h1:mq7Cbqrbbegq8TpVft/zch6rOvS7PhOPF4RTMcxEkrs=
+github.com/clong1995/go-config v0.0.0-20250226023157-45462db4209f/go.mod h1:G4Z1Nh65yNZ2uHv0h9X4KHbISb8XHrSj6k8pxrrtZTw=
 github.com/go-sql-driver/mysql v1.8.1 h1:LedoTUt/eveggdHS9qUFC1EFSa8bU2+1pZjSRpvNJ1Y=
 github.com/go-sql-driver/mysql v1.8.1/go.mod h1:wEBSXgmK//2ZFJyE+qWnIsVGmvmEKlqwuVSjsCm7DZg=
+github.com/go-sql-driver/mysql v1.9.1 h1:FrjNGn/BsJQjVRuSa8CBrM5BWA9BWoXXat3KrtSb/iI=
+github.com/go-sql-driver/mysql v1.9.1/go.mod h1:qn46aNg1333BRMNU69Lq93t8du/dwxI64Gl8i5p1WMU=
